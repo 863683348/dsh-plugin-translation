@@ -20,6 +20,10 @@ Restart DSH. The `translate_kit` tool is registered host-wide.
 | `tone` | Register-specific tone guide (formal / colloquial / technical, en / zh) |
 | `memo_get` | Read the translation memory (newest first) |
 | `memo_add` | Save a source→target pair to the memory file in the session workspace |
+| `glossary_get` | Read the durable glossary (newest first) |
+| `glossary_add` | Add or update a source→target glossary term in the workspace glossary file |
+| `glossary_remove` | Remove a glossary term by source |
+| `consistency` | Cross-segment terminology consistency check against the glossary |
 
 ## Config
 
@@ -30,6 +34,8 @@ All optional, on the composition row's `config`:
 | `personaSection` | `true` | register the translation prompt-guidance section |
 | `sectionOrder` | `6` | prompt section order (persona is 0, ascending) |
 | `memoFile` | `.dsh/translation-memo.md` | memory file path (relative to the session workspace; cannot escape it) |
+| `glossaryFile` | `.dsh/translation-glossary.md` | glossary file path (relative to the session workspace; cannot escape it) |
+| `maxGlossaryEntries` | `200` | entries kept in the glossary file |
 | `maxMemoEntries` | `200` | entries kept in the memory file |
 
 ## Design
@@ -39,3 +45,8 @@ Pure logic (`lib/translation.js`) has zero DSH/Cordis imports and is unit-tested
 ## License
 
 MIT
+
+
+## Roadmap
+
+See [ROADMAP.md](./ROADMAP.md) — next five versions (v0.2.0 – v0.6.0): glossary management & consistency, tone memory & quality scoring, side-by-side diff & placeholder protection, conflict detection & effort stats, glossary versioning & batch pipeline.

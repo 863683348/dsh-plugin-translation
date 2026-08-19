@@ -2,6 +2,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   appendMemo,
+  checkConsistency,
+  mergeGlossaryEntry,
+  parseGlossary,
+  removeGlossaryEntry,
+  renderGlossary,
   buildMemoEntry,
   extractTerms,
   qaCheck,
@@ -70,4 +75,69 @@ test("renderMemo renders newest first", () => {
   const i2 = out.indexOf("charlie");
   const i1 = out.indexOf("alpha");
   assert.ok(i2 !== -1 && i1 !== -1 && i2 < i1);
+});
+
+
+test("parseGlossary parses source => target lines", () => {
+  const entries = parseGlossary({ text: "# Translation Glossary\n\n- cache => 缓存\n- LLM => 大语言模型\n" });
+  assert.equal(entries.length, 2);
+  assert.equal(entries[0].source, "cache");
+  assert.equal(entries[0].target, "缓存");
+});
+
+test("mergeGlossaryEntry adds and updates, keeping newest", () => {
+  let text = mergeGlossaryEntry({ existing: "", source: "cache", target: "缓存", maxEntries: 100 });
+  assert.ok(text.includes("- cache => 缓存"));
+  text = mergeGlossaryEntry({ existing: text, source: "cache", target: "高速缓存", maxEntries: 100 });
+  const entries = parseGlossary({ text });
+  assert.equal(entries.length, 1, "updated in place");
+  assert.equal(entries[0].target, "高速缓存");
+});
+
+test("mergeGlossaryEntry caps entries and validates input", () => {
+  let text = "";
+  for (let i = 0; i < 5; i++) text = mergeGlossaryEntry({ existing: text, source: "t" + i, target: "v" + i, maxEntries: 3 });
+  assert.equal(parseGlossary({ text }).length, 3);
+  assert.throws(() => mergeGlossaryEntry({ existing: "", source: "", target: "x" }));
+  assert.throws(() => mergeGlossaryEntry({ existing: "", source: "x", target: "" }));
+});
+
+test("removeGlossaryEntry deletes by source", () => {
+  let text = mergeGlossaryEntry({ existing: "", source: "a", target: "1", maxEntries: 10 });
+  text = mergeGlossaryEntry({ existing: text, source: "b", target: "2", maxEntries: 10 });
+  text = removeGlossaryEntry({ existing: text, source: "a" });
+  const entries = parseGlossary({ text });
+  assert.equal(entries.length, 1);
+  assert.equal(entries[0].source, "b");
+});
+
+test("renderGlossary lists newest first", () => {
+  let text = mergeGlossaryEntry({ existing: "", source: "a", target: "1", maxEntries: 10 });
+  text = mergeGlossaryEntry({ existing: text, source: "b", target: "2", maxEntries: 10 });
+  const rendered = renderGlossary({ text });
+  assert.ok(rendered.indexOf("b => 2") < rendered.indexOf("a => 1"), "newest first");
+});
+
+test("checkConsistency flags conflicting translations", () => {
+  const res = checkConsistency({
+    pairs: [
+      { source: "The cache stores data.", target: "缓存存储数据。" },
+      { source: "Clear the cache.", target: "清除存储。" },
+    ],
+    glossary: [{ source: "cache", target: "缓存" }],
+  });
+  assert.equal(res.consistent, false);
+  assert.equal(res.mismatches.length, 1);
+  assert.equal(res.mismatches[0].term, "cache");
+  assert.ok(res.mismatches[0].translations.length >= 2);
+});
+
+test("checkConsistency passes when consistent and reports empty glossary", () => {
+  const ok = checkConsistency({
+    pairs: [{ source: "cache", target: "缓存" }],
+    glossary: [{ source: "cache", target: "缓存" }],
+  });
+  assert.equal(ok.consistent, true);
+  const empty = checkConsistency({ pairs: [{ source: "x", target: "y" }], glossary: [] });
+  assert.equal(empty.consistent, true);
 });

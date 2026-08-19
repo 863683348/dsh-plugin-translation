@@ -1,0 +1,13 @@
+# dsh-plugin-translation — bundle patch layer.
+# Composes over an EMPTY entry list, so every patch here is an `insert`
+# appending composition rows. This row registers the `translate_kit` model
+# tool (including the workspace-contained translation memory) and the
+# translation prompt-guidance section host-wide.
+- insert:
+    - id: translation
+      name: 'dsh-plugin-translation'
+      config:
+        personaSection: true
+        sectionOrder: 6
+        memoFile: '.dsh/translation-memo.md'
+        maxMemoEntries: 200

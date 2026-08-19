@@ -19,7 +19,11 @@ dsh plugin --profile <profile> add dsh-plugin-translation
 | `check` | 译文质检：数字/单位、括号配对、长度比例、重复标点 |
 | `tone` | 语气指南（正式 / 口语 / 技术，中 / 英） |
 | `memo_get` | 读取翻译记忆（新的在前） |
-| `memo_add` | 保存一条源文→译文到会话工作区内的记忆文件 |
+| `memo_add` | 保存源→译对到工作区翻译记忆文件 |
+| `glossary_get` | 读取持久化术语库（新→旧） |
+| `glossary_add` | 新增/更新术语（源→译）到工作区术语表 |
+| `glossary_remove` | 按源术语删除术语条目 |
+| `consistency` | 跨段术语一致性检查（同源术语译文统一性）
 
 ## 配置
 
