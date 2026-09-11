@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-translation",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Translation toolkit for DeepSeek Harness agents: segmentation, term extraction, durable glossary and tone memory, cross-segment consistency checks, source-target QA, heuristic quality scoring, tone guides, and a durable translation memory",
   "type": "module",
   "main": "lib/index.js",
