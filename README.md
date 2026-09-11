@@ -24,6 +24,9 @@ Restart DSH. The `translate_kit` tool is registered host-wide.
 | `glossary_add` | Add or update a source→target glossary term in the workspace glossary file |
 | `glossary_remove` | Remove a glossary term by source |
 | `consistency` | Cross-segment terminology consistency check against the glossary |
+| `tone_get` | Read saved tone guides (filterable by tone and language) |
+| `tone_save` | Save a tone guide for a tone@language pair |
+| `quality` | Heuristic quality score (0-100) with fidelity/fluency breakdown |
 
 ## Config
 
@@ -36,6 +39,8 @@ All optional, on the composition row's `config`:
 | `memoFile` | `.dsh/translation-memo.md` | memory file path (relative to the session workspace; cannot escape it) |
 | `glossaryFile` | `.dsh/translation-glossary.md` | glossary file path (relative to the session workspace; cannot escape it) |
 | `maxGlossaryEntries` | `200` | entries kept in the glossary file |
+| `toneFile` | `.dsh/translation-tone.md` | tone-memory file path (relative to the session workspace) |
+| `maxToneEntries` | `50` | saved tone guides kept |
 | `maxMemoEntries` | `200` | entries kept in the memory file |
 
 ## Design

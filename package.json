@@ -1,7 +1,7 @@
 {
   "name": "dsh-plugin-translation",
-  "version": "0.2.0",
-  "description": "Translation toolkit for DeepSeek Harness agents: sentence segmentation, term/glossary extraction, a durable workspace glossary (add/get/remove), cross-segment terminology consistency checks, source-target QA, tone guides, and a durable translation memory",
+  "version": "0.3.0",
+  "description": "Translation toolkit for DeepSeek Harness agents: segmentation, term extraction, durable glossary and tone memory, cross-segment consistency checks, source-target QA, heuristic quality scoring, tone guides, and a durable translation memory",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
@@ -31,7 +31,9 @@
     "memo",
     "qa",
     "terminology",
-    "consistency"
+    "consistency",
+    "tone",
+    "quality-score"
   ],
   "license": "MIT",
   "dsh": {

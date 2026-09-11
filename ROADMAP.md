@@ -34,7 +34,7 @@
 - [ ] README（en/zh）更新（含新配置项 `glossaryFile` / `maxGlossaryEntries`）
 - [ ] vertical-toolkits dump-config 正常
 
-## v0.3.0 — 风格与质量
+## v0.3.0 ✅ 已完成 — 风格与质量
 
 - `tone_memory`：保存/复用语气指南（formal/colloquial/technical × en/zh），与 tone 动作联动
 - `quality`：译文质量启发式评分（忠实度：数字/术语一致；流畅度：句长/重复度），输出 0–100 与改进点

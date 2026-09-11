@@ -2,6 +2,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   appendMemo,
+  mergeToneEntry,
+  parseToneMemory,
+  removeToneEntry,
+  renderToneMemory,
+  scoreQuality,
   checkConsistency,
   mergeGlossaryEntry,
   parseGlossary,
@@ -140,4 +145,84 @@ test("checkConsistency passes when consistent and reports empty glossary", () =>
   assert.equal(ok.consistent, true);
   const empty = checkConsistency({ pairs: [{ source: "x", target: "y" }], glossary: [] });
   assert.equal(empty.consistent, true);
+});
+
+
+test("parseToneMemory round-trips tone@lang with notes", () => {
+  let text = mergeToneEntry({ existing: "", tone: "formal", targetLang: "zh", notes: "避免口语缩写", now: "2026-08-22T00:00:00Z" });
+  text = mergeToneEntry({ existing: text, tone: "technical", targetLang: "en", notes: "keep code identifiers", now: "2026-08-22T01:00:00Z" });
+  const entries = parseToneMemory({ text });
+  assert.equal(entries.length, 2);
+  assert.equal(entries[0].tone, "formal");
+  assert.equal(entries[0].lang, "zh");
+  assert.equal(entries[1].tone, "technical");
+  assert.equal(entries[1].lang, "en");
+  assert.equal(entries[1].notes, "keep code identifiers");
+});
+
+test("mergeToneEntry updates in place and validates", () => {
+  let text = mergeToneEntry({ existing: "", tone: "formal", targetLang: "zh", notes: "v1" });
+  text = mergeToneEntry({ existing: text, tone: "formal", targetLang: "zh", notes: "v2" });
+  const entries = parseToneMemory({ text });
+  assert.equal(entries.length, 1, "updated not duplicated");
+  assert.equal(entries[0].notes, "v2");
+  assert.throws(() => mergeToneEntry({ existing: "", tone: "", targetLang: "zh", notes: "x" }));
+  assert.throws(() => mergeToneEntry({ existing: "", tone: "formal", targetLang: "zh", notes: "" }));
+});
+
+test("mergeToneEntry caps entries", () => {
+  let text = "";
+  for (let i = 0; i < 5; i++) text = mergeToneEntry({ existing: text, tone: "t" + i, targetLang: "zh", notes: "n" + i, maxEntries: 3 });
+  assert.equal(parseToneMemory({ text }).length, 3);
+});
+
+test("removeToneEntry deletes one tone@lang pair", () => {
+  let text = mergeToneEntry({ existing: "", tone: "formal", targetLang: "zh", notes: "a" });
+  text = mergeToneEntry({ existing: text, tone: "technical", targetLang: "en", notes: "b" });
+  text = removeToneEntry({ existing: text, tone: "formal", targetLang: "zh" });
+  const entries = parseToneMemory({ text });
+  assert.equal(entries.length, 1);
+  assert.equal(entries[0].tone, "technical");
+});
+
+test("renderToneMemory filters by tone and language", () => {
+  let text = mergeToneEntry({ existing: "", tone: "formal", targetLang: "zh", notes: "中文正式" });
+  text = mergeToneEntry({ existing: text, tone: "formal", targetLang: "en", notes: "english formal" });
+  const zh = renderToneMemory({ text, tone: "formal", targetLang: "zh" });
+  assert.ok(zh.includes("formal@zh"));
+  assert.ok(!zh.includes("english formal"));
+  assert.ok(renderToneMemory({ text: "" }).includes("empty"));
+});
+
+test("scoreQuality gives 100 to a faithful translation", () => {
+  const q = scoreQuality({ source: "The cache stores 100 items.", target: "缓存存储 100 个条目。" });
+  assert.equal(q.score, 100);
+  assert.equal(q.grade, "A");
+  assert.equal(q.issues.length, 0);
+});
+
+test("scoreQuality penalises missing numbers and length anomalies", () => {
+  const q = scoreQuality({ source: "The cache stores 100 items.", target: "存储条目。。" });
+  assert.ok(q.score < 100);
+  assert.ok(q.issues.some((i) => /数字缺失/.test(i)));
+  assert.ok(q.issues.some((i) => /长度比/.test(i)));
+  assert.ok(q.fluency < 40);
+});
+
+test("scoreQuality penalises untranslated leakage", () => {
+  const q = scoreQuality({ source: "缓存存储 100 条数据。", target: "The cache stores data." });
+  assert.ok(q.issues.some((i) => /未翻译片段/.test(i)));
+  assert.ok(q.fidelity < 60);
+});
+
+test("scoreQuality enforces glossary terms", () => {
+  const ok = scoreQuality({ source: "Cache 存储 100 条。", target: "缓存存储 100 条。", glossary: [{ source: "Cache", target: "缓存" }] });
+  assert.equal(ok.issues.length, 0);
+  const bad = scoreQuality({ source: "Cache 存储 100 条。", target: "高速存储 100 条。", glossary: [{ source: "Cache", target: "缓存" }] });
+  assert.ok(bad.issues.some((i) => /术语未按术语表/.test(i)));
+});
+
+test("scoreQuality validates input", () => {
+  assert.throws(() => scoreQuality({ source: "", target: "x" }));
+  assert.throws(() => scoreQuality({ source: "x", target: "   " }));
 });
